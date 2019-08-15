@@ -1,37 +1,17 @@
-## Welcome to GitHub Pages
+## Allen의 기술 블로그 이제 오픈 해 봅니다. 
 
-You can use the [editor on GitHub](https://github.com/theallenkim/theallenkim.github.io/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+이 블로그는 기존의 opendev4u.tistory.com의 기술 내용만 가져와서 구성하며 
 
-### Markdown
+새로운 페이지로 구성하려 합니다. 
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+이 블로그에서 다루려는 내용은 크게 다음과 같습니다. 
 
-```markdown
-Syntax highlighted code block
+1. iOS 관련 내용 
 
-# Header 1
-## Header 2
-### Header 3
+2. Java 관련 내용 
 
-- Bulleted
-- List
+3. 그 외 
 
-1. Numbered
-2. List
+이상입니다.
 
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/theallenkim/theallenkim.github.io/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
