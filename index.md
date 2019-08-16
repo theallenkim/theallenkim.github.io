@@ -8,6 +8,18 @@
 이 블로그에서 다루려는 내용은 크게 다음과 같습니다. 
 
 1. iOS 관련 내용 
+  --> Objective-C 에 대해서 
+  
+  --> Swift 에 대해서 
+  
+  --> OpenGL on iOS 
+    ==> OpenGL ?
+    ==> GPUImage Lib ?
+    ==> Metal ? 
+  
+  --> RxSwift ? 
+  
+  --> Design Pattern 을 활용 하기
 
 2. Java 관련 내용 
 
