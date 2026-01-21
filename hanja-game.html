@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🈷️ 한자 카드 찾기</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; min-height: -webkit-fill-available; background: linear-gradient(135deg, #0f172a, #7f1d1d, #0f172a); padding: 12px; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+    h1 { color: white; font-size: 24px; margin-bottom: 8px; }
+    .hidden { display: none !important; }
+    .menu { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; max-width: 400px; width: 100%; text-align: center; }
+    .menu-icon { font-size: 48px; margin-bottom: 12px; font-family: serif; }
+    .menu h2 { color: white; font-size: 24px; margin-bottom: 4px; }
+    .menu p { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 16px; }
+    .menu-label { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 8px; }
+    .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .category-btn { padding: 8px; border-radius: 8px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.2); color: white; }
+    .category-btn.active { background: #ef4444; color: white; transform: scale(1.05); }
+    .category-btn span { display: block; font-size: 16px; }
+    .difficulty-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .diff-btn { padding: 8px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.2); color: white; }
+    .diff-btn.active { background: #4ade80; color: #166534; transform: scale(1.05); }
+    .start-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 20px; font-weight: bold; cursor: pointer; background: linear-gradient(90deg, #ef4444, #f97316); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
+    .start-btn:active { transform: scale(0.95); }
+    .sound-row { display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .sound-btn { padding: 8px 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px; }
+    .sound-btn.on { background: #22c55e; color: white; }
+    .sound-btn.off { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); }
+    .game { width: 100%; max-width: 400px; }
+    .game-left, .game-right { width: 100%; }
+    .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+    .stat { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; color: white; }
+    .stat-value { font-weight: bold; }
+    .score-value { color: #fde047; }
+    .combo-value { color: #fdba74; }
+    .lives-value { color: #fca5a5; }
+    .timer-bar { height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+    .timer-fill { height: 100%; transition: width 1s linear, background-color 0.3s; border-radius: 5px; }
+    .timer-green { background: #22c55e; }
+    .timer-yellow { background: #eab308; }
+    .timer-red { background: #ef4444; }
+    .question-card { background: white; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; overflow: visible; }
+    .question-label { color: #6b7280; font-size: 14px; margin-bottom: 8px; }
+    .question-hanja { font-size: 72px; font-weight: bold; color: #b91c1c; font-family: serif; }
+    .combo-display { color: #f97316; font-weight: bold; margin-top: 8px; }
+    .options-grid { display: grid; gap: 8px; }
+    .options-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .options-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .option-btn { padding: 16px 12px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); position: relative; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); aspect-ratio: 1.5; display: flex; align-items: center; justify-content: center; }
+    .option-btn:active { transform: scale(0.95); }
+    .option-btn:disabled { cursor: default; }
+    .option-btn.correct { box-shadow: 0 0 0 4px #4ade80; background: #dcfce7 !important; color: #166534 !important; text-shadow: none; }
+    .option-btn.faded { opacity: 0.5; }
+    .check-mark { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+    .color-0 { background: linear-gradient(135deg, #f87171, #ef4444); }
+    .color-1 { background: linear-gradient(135deg, #fb923c, #f97316); }
+    .color-2 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .color-3 { background: linear-gradient(135deg, #4ade80, #22c55e); }
+    .color-4 { background: linear-gradient(135deg, #2dd4bf, #14b8a6); }
+    .color-5 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+    .color-6 { background: linear-gradient(135deg, #818cf8, #6366f1); }
+    .color-7 { background: linear-gradient(135deg, #c084fc, #a855f7); }
+    .feedback-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: none; animation: fadeInOut 0.8s ease-in-out forwards; }
+    .feedback-box { padding: 32px 40px; border-radius: 24px; background: rgba(255, 220, 80, 0.95); border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; animation: popIn 0.3s ease-out; }
+    .feedback-icon { font-size: 60px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+    .feedback-icon.correct { color: #22c55e; }
+    .feedback-icon.wrong { color: #ef4444; }
+    .feedback-text { font-size: 20px; font-weight: bold; margin-top: 8px; }
+    .feedback-text.correct { color: #166534; }
+    .feedback-text.wrong { color: #991b1b; }
+    .feedback-answer { color: #92400e; font-size: 14px; margin-top: 4px; }
+    .score-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 50; }
+    .score-popup-text { font-size: 36px; font-weight: 900; color: #facc15; text-shadow: 0 0 20px rgba(255,200,0,0.8), 0 0 40px rgba(255,150,0,0.5); animation: popBurst 0.8s ease-out forwards; }
+    .particle { position: absolute; width: 12px; height: 12px; border-radius: 50%; animation: particleBurst 0.8s ease-out forwards; }
+    .star { position: absolute; font-size: 24px; animation: starBurst 0.6s ease-out forwards; }
+    .gameover { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center; }
+    .gameover-icon { font-size: 60px; margin-bottom: 16px; }
+    .gameover h2 { color: #facc15; font-size: 28px; margin-bottom: 16px; }
+    .gameover-stats { background: rgba(255,255,255,0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .gameover-stats p { color: white; margin: 8px 0; }
+    .final-score { font-size: 20px; }
+    .final-score span { color: #fde047; font-size: 24px; font-weight: bold; }
+    .accuracy span { color: #86efac; font-weight: bold; }
+    .max-combo span { color: #fdba74; font-weight: bold; }
+    .gameover-btns { display: flex; gap: 12px; }
+    .retry-btn { flex: 1; padding: 16px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; background: linear-gradient(90deg, #ef4444, #f97316); color: white; transition: transform 0.2s; }
+    .menu-btn { flex: 1; padding: 16px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; background: rgba(255,255,255,0.2); color: white; transition: transform 0.2s; }
+    .retry-btn:active, .menu-btn:active { transform: scale(0.95); }
+    .footer { margin-top: 12px; color: rgba(255,255,255,0.4); font-size: 12px; }
+    .bowl-container { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; text-align: center; }
+    .bowl-label { color: rgba(255,255,255,0.8); font-size: 14px; margin-right: 8px; }
+    .bowl-value { font-size: 18px; letter-spacing: 2px; }
+    .quit-btn { width: 100%; margin-top: 12px; padding: 10px; border-radius: 8px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); transition: all 0.2s; }
+    .quit-btn:hover { background: rgba(239,68,68,0.5); color: white; }
+    .confirm-popup { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 200; }
+    .confirm-box { background: white; border-radius: 16px; padding: 24px; max-width: 300px; width: 90%; text-align: center; }
+    .confirm-text { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; }
+    .confirm-btns { display: flex; flex-direction: column; gap: 10px; }
+    .confirm-yes { padding: 12px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; background: #ef4444; color: white; }
+    .confirm-no { padding: 12px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; background: #22c55e; color: white; }
+
+    /* 가로모드 */
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding: 8px; justify-content: center; }
+      h1 { position: fixed; top: 4px; left: 50%; transform: translateX(-50%); font-size: 16px; margin: 0; z-index: 10; }
+      .menu { max-width: 95vw; padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+      .menu-header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 12px; }
+      .menu-icon { font-size: 32px; margin: 0; }
+      .menu h2 { font-size: 18px; margin: 0; }
+      .menu > p:first-of-type { grid-column: 1 / -1; margin-bottom: 0; }
+      .menu-label { margin-bottom: 4px; font-size: 12px; }
+      .category-grid { gap: 4px; margin-bottom: 0; }
+      .category-btn { padding: 4px; font-size: 11px; }
+      .category-btn span { font-size: 14px; }
+      .difficulty-row { margin-bottom: 0; gap: 4px; }
+      .diff-btn { padding: 4px 8px; font-size: 12px; }
+      .start-btn { grid-column: 1 / -1; padding: 10px; font-size: 16px; }
+      .sound-row { grid-column: 1 / -1; margin-top: 8px; gap: 6px; }
+      .sound-btn { padding: 4px 8px; font-size: 11px; }
+      
+      .game { display: flex; flex-direction: row; max-width: none; width: 100%; margin-top: 28px; gap: 12px; align-items: center; justify-content: center; }
+      .game-left { width: 200px; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
+      .game-right { flex: 1; max-width: 450px; display: flex; align-items: center; justify-content: center; }
+      .stats { font-size: 11px; gap: 4px; margin-bottom: 4px; }
+      .stat { padding: 3px 6px; }
+      .timer-bar { height: 6px; margin-bottom: 4px; }
+      .question-card { padding: 10px; margin-bottom: 0; }
+      .question-label { font-size: 11px; margin-bottom: 4px; }
+      .question-hanja { font-size: 48px; }
+      .combo-display { font-size: 12px; margin-top: 4px; }
+      .options-grid { gap: 6px; }
+      .option-btn { padding: 10px 8px; font-size: 13px; aspect-ratio: 1.5; }
+      .check-mark { width: 18px; height: 18px; font-size: 10px; }
+      
+      .gameover { max-width: 450px; padding: 12px; margin-top: 28px; }
+      .gameover-icon { font-size: 36px; margin-bottom: 8px; }
+      .gameover h2 { font-size: 20px; margin-bottom: 8px; }
+      .gameover-stats { padding: 8px; margin-bottom: 8px; }
+      .gameover-stats p { margin: 4px 0; font-size: 14px; }
+      .gameover-btns button { padding: 10px; font-size: 14px; }
+      
+      .feedback-box { padding: 16px 24px; }
+      .feedback-icon { font-size: 40px; }
+      .feedback-text { font-size: 16px; }
+      .footer { display: none; }
+      .bowl-container { padding: 4px 8px; margin-bottom: 4px; }
+      .bowl-label { font-size: 11px; }
+      .bowl-value { font-size: 14px; letter-spacing: 1px; }
+      .quit-btn { margin-top: 8px; padding: 6px; font-size: 12px; }
+    }
+
+    @media (orientation: landscape) and (min-width: 700px) and (max-height: 500px) {
+      .game-left { width: 240px; min-width: 240px; }
+      .question-hanja { font-size: 56px; }
+      .option-btn { padding: 12px 10px; font-size: 14px; aspect-ratio: 1.5; }
+    }
+
+    @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes popIn { 0% { transform: scale(0.5); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes popBurst { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 50% { transform: scale(1.4) rotate(5deg); opacity: 1; } 100% { transform: scale(1) translateY(-30px) rotate(0deg); opacity: 0; } }
+    @keyframes particleBurst { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+    @keyframes starBurst { 0% { transform: rotate(var(--angle)) translateY(0) scale(0); opacity: 1; } 100% { transform: rotate(var(--angle)) translateY(-60px) scale(1); opacity: 0; } }
+  </style>
+</head>
+<body>
+  <h1>🈷️ 한자 카드 찾기</h1>
+  
+  <div id="menuScreen" class="menu">
+    <div class="menu-header"><div class="menu-icon">漢</div><h2>한자 카드 찾기</h2></div>
+    <p>한자를 보고 맞는 뜻과 음을 찾아요!</p>
+    <div><p class="menu-label">학습 영역 선택</p><div class="category-grid" id="categoryGrid"></div></div>
+    <div><p class="menu-label">난이도 선택</p><div class="difficulty-row" id="difficultyRow"></div></div>
+    <button class="start-btn" id="startBtn">게임 시작!</button>
+    <div class="sound-row">
+      <button class="sound-btn on" id="sfxBtn">🔊 효과음</button>
+      <button class="sound-btn on" id="bgmBtn">🎵 배경음</button>
+      <button class="sound-btn on" id="ttsBtn">🗣️ 음성</button>
+    </div>
+  </div>
+  
+  <div id="gameScreen" class="game hidden">
+    <div class="game-left">
+      <div class="stats">
+        <div class="stat">점수: <span class="stat-value score-value" id="scoreDisplay">0</span></div>
+        <div class="stat">콤보: <span class="stat-value combo-value" id="comboDisplay">0</span>🔥</div>
+        <div class="stat">진행: <span class="stat-value" id="progressDisplay">0/20</span></div>
+      </div>
+      <div class="bowl-container">
+        <span class="bowl-label">🍽️ 밥상:</span>
+        <span class="bowl-value" id="livesDisplay">🥣🥣🥣🥣🥣🥣🥣🥣🥣🥣</span>
+      </div>
+      <div class="timer-bar"><div class="timer-fill timer-green" id="timerFill"></div></div>
+      <div class="question-card">
+        <p class="question-label">이 한자의 뜻과 음을 찾으세요!</p>
+        <div class="question-hanja" id="questionHanja"></div>
+        <div class="combo-display hidden" id="comboBonus"></div>
+        <div class="score-popup hidden" id="scorePopup"></div>
+      </div>
+    </div>
+    <div class="game-right">
+      <div class="options-grid cols-2" id="optionsGrid"></div>
+      <button class="quit-btn" id="quitBtn">🏳️ 포기하기</button>
+    </div>
+  </div>
+  
+  <div id="gameoverScreen" class="gameover hidden">
+    <div class="gameover-icon" id="gameoverIcon">🎉</div><h2 id="gameoverTitle">맛있게 먹자!</h2>
+    <div class="gameover-stats">
+      <p class="final-score">최종 점수: <span id="finalScore">0</span></p>
+      <p class="accuracy">정답률: <span id="finalAccuracy">0/0 (0%)</span></p>
+      <p class="max-combo">최고 콤보: <span id="finalCombo">0</span>🔥</p>
+      <p class="bowls-filled">채운 그릇: <span id="finalBowls">0/10</span>🍽️</p>
+    </div>
+    <div class="gameover-btns"><button class="retry-btn" id="retryBtn">다시 하기</button><button class="menu-btn" id="menuBtn">메뉴로</button></div>
+  </div>
+
+  <div id="confirmPopup" class="confirm-popup hidden">
+    <div class="confirm-box">
+      <p class="confirm-text">정말 포기하시겠어요?</p>
+      <div class="confirm-btns">
+        <button class="confirm-yes" id="confirmYes">네, 포기할래요</button>
+        <button class="confirm-no" id="confirmNo">아니요, 계속할래요</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="feedbackOverlay" class="feedback-overlay hidden">
+    <div class="feedback-box">
+      <div class="feedback-icon" id="feedbackIcon">◯</div>
+      <div class="feedback-text" id="feedbackText">정답!</div>
+      <div class="feedback-answer hidden" id="feedbackAnswer"></div>
+    </div>
+  </div>
+  <p class="footer">한자를 보고 맞는 뜻/음 카드를 터치하세요!</p>
+
+  <script>
+    const TTSManager = { enabled: true, speak(text) { if (!this.enabled || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.rate = 0.8; u.pitch = 1.0; window.speechSynthesis.speak(u); } };
+    const hanjaLevels = {
+      basic: { name: '기초 한자', emoji: '🌱', words: [{word:'하나 일',image:'一'},{word:'둘 이',image:'二'},{word:'셋 삼',image:'三'},{word:'넷 사',image:'四'},{word:'다섯 오',image:'五'},{word:'여섯 육',image:'六'},{word:'일곱 칠',image:'七'},{word:'여덟 팔',image:'八'},{word:'아홉 구',image:'九'},{word:'열 십',image:'十'},{word:'백 백',image:'百'},{word:'천 천',image:'千'},{word:'만 만',image:'萬'},{word:'해 년',image:'年'},{word:'달 월',image:'月'},{word:'날 일',image:'日'},{word:'때 시',image:'時'},{word:'나눌 분',image:'分'},{word:'클 대',image:'大'},{word:'작을 소',image:'小'},{word:'위 상',image:'上'},{word:'아래 하',image:'下'},{word:'가운데 중',image:'中'},{word:'날 생',image:'生'},{word:'쉴 휴',image:'休'},{word:'설 립',image:'立'},{word:'볼 견',image:'見'},{word:'말씀 언',image:'言'},{word:'배울 학',image:'學'},{word:'글 문',image:'文'}]},
+      nature: { name: '자연 한자', emoji: '🌿', words: [{word:'뫼 산',image:'山'},{word:'물 수',image:'水'},{word:'불 화',image:'火'},{word:'나무 목',image:'木'},{word:'흙 토',image:'土'},{word:'쇠 금',image:'金'},{word:'하늘 천',image:'天'},{word:'땅 지',image:'地'},{word:'바람 풍',image:'風'},{word:'구름 운',image:'雲'},{word:'비 우',image:'雨'},{word:'눈 설',image:'雪'},{word:'번개 전',image:'電'},{word:'돌 석',image:'石'},{word:'내 천',image:'川'},{word:'바다 해',image:'海'},{word:'못 지',image:'池'},{word:'밭 전',image:'田'},{word:'풀 초',image:'草'},{word:'꽃 화',image:'花'},{word:'숲 림',image:'林'},{word:'봄 춘',image:'春'},{word:'여름 하',image:'夏'},{word:'가을 추',image:'秋'},{word:'겨울 동',image:'冬'},{word:'빛 광',image:'光'},{word:'기운 기',image:'氣'},{word:'별 성',image:'星'},{word:'서리 상',image:'霜'},{word:'이슬 로',image:'露'}]},
+      body: { name: '신체 한자', emoji: '🙋', words: [{word:'사람 인',image:'人'},{word:'눈 목',image:'目'},{word:'귀 이',image:'耳'},{word:'입 구',image:'口'},{word:'손 수',image:'手'},{word:'발 족',image:'足'},{word:'마음 심',image:'心'},{word:'힘 력',image:'力'},{word:'머리 두',image:'頭'},{word:'몸 신',image:'身'},{word:'낯 면',image:'面'},{word:'피 혈',image:'血'},{word:'뼈 골',image:'骨'},{word:'살 육',image:'肉'},{word:'코 비',image:'鼻'},{word:'혀 설',image:'舌'},{word:'이 치',image:'齒'},{word:'목 경',image:'頸'},{word:'배 복',image:'腹'},{word:'등 배',image:'背'},{word:'가슴 흉',image:'胸'},{word:'팔 비',image:'臂'},{word:'다리 각',image:'脚'},{word:'손가락 지',image:'指'},{word:'털 모',image:'毛'},{word:'가죽 피',image:'皮'},{word:'뇌 뇌',image:'腦'},{word:'간 간',image:'肝'},{word:'허파 폐',image:'肺'},{word:'창자 장',image:'腸'}]},
+      direction: { name: '방향/위치', emoji: '🧭', words: [{word:'동녘 동',image:'東'},{word:'서녘 서',image:'西'},{word:'남녘 남',image:'南'},{word:'북녘 북',image:'北'},{word:'위 상',image:'上'},{word:'아래 하',image:'下'},{word:'왼 좌',image:'左'},{word:'오른 우',image:'右'},{word:'가운데 중',image:'中'},{word:'안 내',image:'內'},{word:'바깥 외',image:'外'},{word:'앞 전',image:'前'},{word:'뒤 후',image:'後'},{word:'사이 간',image:'間'},{word:'곁 방',image:'傍'},{word:'멀 원',image:'遠'},{word:'가까울 근',image:'近'},{word:'높을 고',image:'高'},{word:'낮을 저',image:'低'},{word:'깊을 심',image:'深'},{word:'얕을 천',image:'淺'},{word:'곧을 직',image:'直'},{word:'굽을 곡',image:'曲'},{word:'가로 횡',image:'橫'},{word:'세로 종',image:'縱'},{word:'모퉁이 각',image:'角'},{word:'가 변',image:'邊'},{word:'끝 단',image:'端'},{word:'가장자리 연',image:'緣'},{word:'밑 저',image:'底'}]},
+      size: { name: '크기/모양', emoji: '📐', words: [{word:'큰 대',image:'大'},{word:'작을 소',image:'小'},{word:'긴 장',image:'長'},{word:'짧을 단',image:'短'},{word:'높을 고',image:'高'},{word:'많을 다',image:'多'},{word:'적을 소',image:'少'},{word:'넓을 광',image:'廣'},{word:'바를 정',image:'正'},{word:'새 신',image:'新'},{word:'예 고',image:'古'},{word:'밝을 명',image:'明'},{word:'어두울 암',image:'暗'},{word:'무거울 중',image:'重'},{word:'가벼울 경',image:'輕'},{word:'넓을 활',image:'闊'},{word:'좁을 협',image:'狹'},{word:'두꺼울 후',image:'厚'},{word:'얇을 박',image:'薄'},{word:'빠를 속',image:'速'},{word:'느릴 만',image:'慢'},{word:'강할 강',image:'强'},{word:'약할 약',image:'弱'},{word:'부드러울 연',image:'軟'},{word:'굳을 경',image:'硬'},{word:'차가울 냉',image:'冷'},{word:'더울 열',image:'熱'},{word:'따뜻할 온',image:'溫'},{word:'마를 건',image:'乾'},{word:'젖을 습',image:'濕'}]},
+      family: { name: '가족/사람', emoji: '👨‍👩‍👧‍👦', words: [{word:'아비 부',image:'父'},{word:'어미 모',image:'母'},{word:'맏 형',image:'兄'},{word:'아우 제',image:'弟'},{word:'손윗누이 자',image:'姉'},{word:'손아랫누이 매',image:'妹'},{word:'아들 자',image:'子'},{word:'계집 녀',image:'女'},{word:'사내 남',image:'男'},{word:'임금 왕',image:'王'},{word:'백성 민',image:'民'},{word:'먼저 선',image:'先'},{word:'할아비 조',image:'祖'},{word:'할미 조',image:'祖'},{word:'지아비 부',image:'夫'},{word:'지어미 부',image:'婦'},{word:'아내 처',image:'妻'},{word:'남편 랑',image:'郞'},{word:'어른 장',image:'長'},{word:'아이 아',image:'兒'},{word:'늙을 로',image:'老'},{word:'젊을 소',image:'少'},{word:'벗 우',image:'友'},{word:'스승 사',image:'師'},{word:'제자 도',image:'徒'},{word:'손자 손',image:'孫'},{word:'형제 제',image:'弟'},{word:'자매 매',image:'妹'},{word:'조카 질',image:'姪'},{word:'사위 서',image:'婿'}]}
+    };
+    const difficultySettings = { easy: { options: 4, time: 15, points: 10, questions: 30 }, normal: { options: 4, time: 12, points: 15, questions: 22 }, hard: { options: 4, time: 8, points: 25, questions: 13 } };
+    const confettiColors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#1dd1a1'];
+    let selectedCategory = 'basic', difficulty = 'normal', sfxEnabled = true, bgmEnabled = true, ttsEnabled = true;
+    let score = 0, combo = 0, maxCombo = 0, filledBowls = 0, questionCount = 0, correctCount = 0, totalQuestions = 20, currentQuestion = null, options = [], usedIndices = [], timeLeft = 12, timerInterval = null, isProcessing = false;
+    const foodEmojis = ['🍚','🥗','🍳','🥘','🍜','🥟','🍙','🍱','🥧','🍰'];
+    const SoundManager = { bgmStarted: false, bgmPart: null, synth: null, async init() { await Tone.start(); }, playCorrect() { if (!sfxEnabled) return; const s = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 } }).toDestination(); s.volume.value = -10; s.triggerAttackRelease('C5', '0.1', Tone.now()); s.triggerAttackRelease('E5', '0.1', Tone.now() + 0.1); s.triggerAttackRelease('G5', '0.15', Tone.now() + 0.2); setTimeout(() => s.dispose(), 1000); }, playWrong() { if (!sfxEnabled) return; const s = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 } }).toDestination(); s.volume.value = -10; s.triggerAttackRelease('E3', '0.15', Tone.now()); s.triggerAttackRelease('D3', '0.3', Tone.now() + 0.15); setTimeout(() => s.dispose(), 1000); }, playClick() { if (!sfxEnabled) return; const s = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination(); s.volume.value = -15; s.triggerAttackRelease('C4', '0.05'); setTimeout(() => s.dispose(), 500); }, playCombo(c) { if (!sfxEnabled) return; const s = new Tone.PolySynth(Tone.Synth).toDestination(); s.volume.value = -12; const n = ['C5', 'E5', 'G5', 'B5']; for (let i = 0; i < Math.min(c, 4); i++) s.triggerAttackRelease(n[i], '0.1', Tone.now() + i * 0.08); setTimeout(() => s.dispose(), 1000); }, playGameOver() { if (!sfxEnabled) return; const s = new Tone.PolySynth(Tone.Synth).toDestination(); s.volume.value = -10; s.triggerAttackRelease(['C4', 'E4', 'G4'], '0.3', Tone.now()); s.triggerAttackRelease(['B3', 'D4', 'F4'], '0.5', Tone.now() + 0.4); setTimeout(() => s.dispose(), 2000); }, startBGM() { if (!bgmEnabled || this.bgmStarted) return; this.bgmStarted = true; this.synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.4 } }).toDestination(); this.synth.volume.value = -22; const p = [['E4'],['G4'],['A4'],['B4'],['E5'],['B4'],['A4'],['G4'],['D4'],['F#4'],['A4'],['D5'],['A4'],['F#4'],['D4'],['A3'],['E4'],['G4'],['B4'],['E5'],['G5'],['E5'],['B4'],['G4'],['A4'],['C5'],['E5'],['A5'],['E5'],['C5'],['A4'],['E4']]; let i = 0; const self = this; this.bgmPart = new Tone.Loop(t => { if (self.synth) self.synth.triggerAttackRelease(p[i % p.length], '0.15', t); i++; }, '0.13').start(0); Tone.Transport.bpm.value = 115; Tone.Transport.start(); }, stopBGM() { if (this.bgmPart) { this.bgmPart.stop(); this.bgmPart.dispose(); this.bgmPart = null; } if (this.synth) { this.synth.dispose(); this.synth = null; } Tone.Transport.stop(); this.bgmStarted = false; } };
+    const $ = id => document.getElementById(id);
+    const menuScreen = $('menuScreen'), gameScreen = $('gameScreen'), gameoverScreen = $('gameoverScreen'), feedbackOverlay = $('feedbackOverlay'), categoryGrid = $('categoryGrid'), difficultyRow = $('difficultyRow'), startBtn = $('startBtn'), sfxBtn = $('sfxBtn'), bgmBtn = $('bgmBtn'), ttsBtn = $('ttsBtn'), scoreDisplay = $('scoreDisplay'), comboDisplay = $('comboDisplay'), livesDisplay = $('livesDisplay'), progressDisplay = $('progressDisplay'), timerFill = $('timerFill'), questionHanja = $('questionHanja'), comboBonusEl = $('comboBonus'), optionsGrid = $('optionsGrid'), scorePopup = $('scorePopup'), feedbackIcon = $('feedbackIcon'), feedbackText = $('feedbackText'), feedbackAnswer = $('feedbackAnswer'), finalScore = $('finalScore'), finalAccuracy = $('finalAccuracy'), finalCombo = $('finalCombo'), retryBtn = $('retryBtn'), menuBtn = $('menuBtn'), quitBtn = $('quitBtn'), confirmPopup = $('confirmPopup'), confirmYes = $('confirmYes'), confirmNo = $('confirmNo');
+    function init() { Object.entries(hanjaLevels).forEach(([k, v]) => { const b = document.createElement('button'); b.className = `category-btn ${k === selectedCategory ? 'active' : ''}`; b.innerHTML = `<span>${v.emoji}</span>${v.name}`; b.onclick = () => selectCategory(k); categoryGrid.appendChild(b); }); [{ key: 'easy', label: '쉬움', emoji: '😊' }, { key: 'normal', label: '보통', emoji: '😐' }, { key: 'hard', label: '어려움', emoji: '😈' }].forEach(d => { const b = document.createElement('button'); b.className = `diff-btn ${d.key === difficulty ? 'active' : ''}`; b.textContent = `${d.emoji} ${d.label}`; b.onclick = () => selectDifficulty(d.key); difficultyRow.appendChild(b); }); startBtn.onclick = startGame; sfxBtn.onclick = toggleSfx; bgmBtn.onclick = toggleBgm; ttsBtn.onclick = toggleTts; retryBtn.onclick = startGame; menuBtn.onclick = goToMenu; quitBtn.onclick = quitGame; confirmYes.onclick = confirmQuit; confirmNo.onclick = cancelQuit; }
+    function selectCategory(k) { selectedCategory = k; document.querySelectorAll('.category-btn').forEach((b, i) => b.className = `category-btn ${Object.keys(hanjaLevels)[i] === k ? 'active' : ''}`); }
+    function selectDifficulty(k) { difficulty = k; document.querySelectorAll('.diff-btn').forEach((b, i) => b.className = `diff-btn ${['easy', 'normal', 'hard'][i] === k ? 'active' : ''}`); }
+    function toggleSfx() { sfxEnabled = !sfxEnabled; sfxBtn.className = `sound-btn ${sfxEnabled ? 'on' : 'off'}`; sfxBtn.textContent = sfxEnabled ? '🔊 효과음' : '🔇 효과음'; }
+    function toggleBgm() { bgmEnabled = !bgmEnabled; bgmBtn.className = `sound-btn ${bgmEnabled ? 'on' : 'off'}`; bgmBtn.textContent = bgmEnabled ? '🎵 배경음' : '🎵 배경음'; }
+    function toggleTts() { ttsEnabled = !ttsEnabled; TTSManager.enabled = ttsEnabled; ttsBtn.className = `sound-btn ${ttsEnabled ? 'on' : 'off'}`; ttsBtn.textContent = ttsEnabled ? '🗣️ 음성' : '🗣️ 음성'; }
+    function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
+    async function startGame() { await SoundManager.init(); SoundManager.playClick(); SoundManager.startBGM(); score = 0; combo = 0; maxCombo = 0; filledBowls = 0; questionCount = 0; correctCount = 0; totalQuestions = difficultySettings[difficulty].questions; usedIndices = []; isProcessing = false; menuScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); gameScreen.classList.remove('hidden'); updateDisplay(); generateQuestion(); }
+    function generateQuestion() { const w = hanjaLevels[selectedCategory].words, s = difficultySettings[difficulty]; let a = w.map((_, i) => i).filter(i => !usedIndices.includes(i)); if (a.length < s.options) { usedIndices = []; a = w.map((_, i) => i); } const ci = a[Math.floor(Math.random() * a.length)]; currentQuestion = w[ci]; const wi = w.map((_, i) => i).filter(i => i !== ci); options = shuffle([currentQuestion, ...shuffle(wi).slice(0, s.options - 1).map(i => w[i])]); usedIndices.push(ci); questionHanja.textContent = currentQuestion.image; if (combo >= 3) { comboBonusEl.textContent = `🔥 ${combo} 콤보!`; comboBonusEl.classList.remove('hidden'); } else comboBonusEl.classList.add('hidden'); renderOptions(); startTimer(); isProcessing = false; }
+    function renderOptions() { const s = difficultySettings[difficulty]; optionsGrid.innerHTML = ''; optionsGrid.className = `options-grid ${s.options <= 4 ? 'cols-2' : 'cols-3'}`; options.forEach((o, i) => { const b = document.createElement('button'); b.className = `option-btn color-${i % 8}`; b.textContent = o.word; b.onclick = () => handleAnswer(o); optionsGrid.appendChild(b); }); }
+    function startTimer() { const s = difficultySettings[difficulty]; timeLeft = s.time; updateTimerDisplay(); if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(() => { timeLeft--; updateTimerDisplay(); if (timeLeft <= 0) { clearInterval(timerInterval); handleAnswer({ word: '__timeout__' }); } }, 1000); }
+    function updateTimerDisplay() { const r = timeLeft / difficultySettings[difficulty].time; timerFill.style.width = `${r * 100}%`; timerFill.className = `timer-fill ${r > 0.5 ? 'timer-green' : r > 0.25 ? 'timer-yellow' : 'timer-red'}`; }
+    function handleAnswer(sel) { if (isProcessing) return; isProcessing = true; clearInterval(timerInterval); const ic = sel.word === currentQuestion.word, s = difficultySettings[difficulty]; questionCount++; if (ic) { const pts = s.points + Math.floor(timeLeft * 2) + combo * 5; score += pts; combo++; correctCount++; if (filledBowls < 10) filledBowls++; if (combo > maxCombo) maxCombo = combo; SoundManager.playCorrect(); if (combo >= 3) setTimeout(() => SoundManager.playCombo(combo), 300); TTSManager.speak(currentQuestion.word); showFeedback('correct'); showScorePopup(pts); highlightCorrect(); updateDisplay(); if (questionCount >= totalQuestions || filledBowls >= 10) { setTimeout(endGame, 900); } else { setTimeout(generateQuestion, 900); } } else { combo = 0; SoundManager.playWrong(); showFeedback('wrong', currentQuestion.word); highlightCorrect(); updateDisplay(); if (questionCount >= totalQuestions) { setTimeout(endGame, 900); } else { setTimeout(generateQuestion, 900); } } }
+    function highlightCorrect() { const bs = optionsGrid.querySelectorAll('.option-btn'); bs.forEach((b, i) => { if (options[i].word === currentQuestion.word) { b.classList.add('correct'); b.innerHTML = `${options[i].word}<div class="check-mark">✓</div>`; } else b.classList.add('faded'); b.disabled = true; }); }
+    function showFeedback(t, ans = '') { feedbackIcon.textContent = t === 'correct' ? '◯' : '✕'; feedbackIcon.className = `feedback-icon ${t}`; feedbackText.textContent = t === 'correct' ? '정답!' : '오답!'; feedbackText.className = `feedback-text ${t}`; if (t === 'wrong' && ans) { feedbackAnswer.textContent = `정답: ${ans}`; feedbackAnswer.classList.remove('hidden'); } else feedbackAnswer.classList.add('hidden'); feedbackOverlay.classList.remove('hidden'); setTimeout(() => feedbackOverlay.classList.add('hidden'), 800); }
+    function showScorePopup(pts) { scorePopup.innerHTML = `<div class="score-popup-text">+${pts}</div>`; for (let i = 0; i < 12; i++) { const p = document.createElement('div'); p.className = 'particle'; p.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)]; p.style.setProperty('--tx', `${Math.random() * 100 - 50}px`); p.style.setProperty('--ty', `${Math.random() * -60 - 20}px`); scorePopup.appendChild(p); } for (let i = 0; i < 6; i++) { const st = document.createElement('div'); st.className = 'star'; st.textContent = '⭐'; st.style.setProperty('--angle', `${i * 60}deg`); scorePopup.appendChild(st); } scorePopup.classList.remove('hidden'); setTimeout(() => scorePopup.classList.add('hidden'), 1000); }
+    function updateDisplay() { scoreDisplay.textContent = score; comboDisplay.textContent = combo; let bowls = ''; for (let i = 0; i < 10; i++) { bowls += i < filledBowls ? foodEmojis[i] : '🥣'; } livesDisplay.textContent = bowls; progressDisplay.textContent = `${questionCount}/${totalQuestions}`; }
+    function endGame() { SoundManager.playGameOver(); SoundManager.stopBGM(); gameScreen.classList.add('hidden'); gameoverScreen.classList.remove('hidden'); const success = filledBowls >= 10; $('gameoverIcon').textContent = success ? '🎉' : '😢'; $('gameoverTitle').textContent = success ? '맛있게 먹자!' : '아직 배고파요~'; finalScore.textContent = score; finalAccuracy.textContent = `${correctCount}/${questionCount} (${questionCount > 0 ? Math.round(correctCount / questionCount * 100) : 0}%)`; finalCombo.textContent = maxCombo; $('finalBowls').textContent = `${filledBowls}/10`; }
+    function quitGame() { clearInterval(timerInterval); confirmPopup.classList.remove('hidden'); }
+    function confirmQuit() { confirmPopup.classList.add('hidden'); endGame(); }
+    function cancelQuit() { confirmPopup.classList.add('hidden'); startTimer(); }
+    function goToMenu() { gameScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); menuScreen.classList.remove('hidden'); }
+    init();
+  </script>
+</body>
+</html>
