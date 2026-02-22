@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메이크빌드랩스 - 개인정보 처리방침 | Privacy Policy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAF9;
+            --surface: #FFFFFF;
+            --text-primary: #1C1917;
+            --text-secondary: #57534E;
+            --text-muted: #A8A29E;
+            --accent: #2563EB;
+            --accent-light: #EFF6FF;
+            --border: #E7E5E4;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 60px 24px 100px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 56px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .company-name {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .effective-date {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 48px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 4px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .lang-btn {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+        }
+
+        .lang-btn.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+
+        .lang-btn:not(.active):hover {
+            color: var(--text-primary);
+            background: var(--accent-light);
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            padding-left: 14px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .section p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.85;
+        }
+
+        .section p + p {
+            margin-top: 10px;
+        }
+
+        .highlight-box {
+            background: var(--accent-light);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-top: 12px;
+            font-size: 15px;
+            color: var(--text-primary);
+            border: 1px solid #DBEAFE;
+        }
+
+        .contact-placeholder {
+            background: #FFF7ED;
+            border: 1px dashed #FB923C;
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #9A3412;
+        }
+
+        .contact-placeholder::before {
+            content: "⚠ ";
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Language visibility */
+        .lang-en { display: none; }
+        body.en .lang-ko { display: none; }
+        body.en .lang-en { display: block; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 40px 20px 80px; }
+            .header h1 { font-size: 24px; }
+            .section h2 { font-size: 16px; }
+        }
+
+        /* Print */
+        @media print {
+            .lang-toggle { display: none; }
+            body { background: #fff; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="company-name">MakeBuildLabs</div>
+            <h1 class="lang-ko">개인정보 처리방침</h1>
+            <h1 class="lang-en">Privacy Policy</h1>
+            <p class="effective-date lang-ko">시행일: 2025년 2월 23일</p>
+            <p class="effective-date lang-en">Effective Date: February 23, 2025</p>
+        </div>
+
+        <!-- Language Toggle -->
+        <div class="lang-toggle">
+            <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+            <button class="lang-btn" onclick="setLang('en')">English</button>
+        </div>
+
+        <!-- ============ 한국어 ============ -->
+        <div class="lang-ko">
+
+            <div class="section">
+                <h2>1. 개요</h2>
+                <p>메이크빌드랩스(이하 "회사")는 이용자의 개인정보를 소중히 여기며, 「개인정보 보호법」 등 관련 법령을 준수합니다. 본 개인정보 처리방침은 회사가 제공하는 모든 모바일 애플리케이션(이하 "서비스")에 적용됩니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>2. 수집하는 개인정보</h2>
+                <div class="highlight-box">
+                    회사는 서비스 제공을 위해 이용자의 개인정보를 별도로 수집하지 않습니다.
+                </div>
+                <p style="margin-top:12px;">회사의 앱은 기기 내에서 독립적으로 작동하며, 별도의 회원가입·로그인 절차가 없고, 이용자의 개인정보를 서버로 전송하거나 저장하지 않습니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>3. 자동 수집 정보</h2>
+                <p>회사는 광고 SDK, 분석 도구 등 제3자 서비스를 사용하지 않으며, 이용자의 기기 정보, 사용 통계 등을 자동으로 수집하지 않습니다.</p>
+                <p>다만, 앱이 배포되는 플랫폼(Apple App Store, Google Play Store)에서 자체적으로 수집하는 정보(앱 설치 통계, 충돌 보고서 등)가 있을 수 있으며, 이는 각 플랫폼의 개인정보 처리방침에 따릅니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>4. 기기 접근 권한</h2>
+                <p>일부 앱은 서비스 제공을 위해 카메라 등 기기 접근 권한을 요청할 수 있습니다. 해당 권한은 앱 내 기능 구현 목적으로만 사용되며, 촬영된 이미지나 데이터는 기기 내에서만 처리되고 외부로 전송되지 않습니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>5. 개인정보의 제3자 제공</h2>
+                <p>회사는 이용자의 개인정보를 제3자에게 제공하지 않습니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>6. 개인정보의 보유 및 파기</h2>
+                <p>회사는 개인정보를 수집하지 않으므로 별도의 보유·파기 절차가 없습니다. 앱 내에서 생성된 데이터는 이용자의 기기에만 저장되며, 앱 삭제 시 함께 제거됩니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>7. 이용자의 권리</h2>
+                <p>이용자는 언제든지 앱을 삭제하여 기기에 저장된 모든 데이터를 제거할 수 있습니다. 개인정보와 관련한 문의사항이 있으시면 아래 연락처로 문의해 주시기 바랍니다.</p>
+            </div>
+
+            <div class="section">
+                <h2>8. 개인정보 보호책임자</h2>
+                <div class="contact-placeholder">
+                    이 부분을 실제 연락처로 수정해 주세요.<br>
+                    예시: 이름: 홍길동 / 이메일: contact@makebuildlabs.com
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>9. 개인정보 처리방침 변경</h2>
+                <p>본 개인정보 처리방침이 변경되는 경우, 변경 사항을 본 페이지에 게시하며, 변경된 방침은 게시한 날부터 효력이 발생합니다.</p>
+            </div>
+        </div>
+
+        <!-- ============ English ============ -->
+        <div class="lang-en">
+
+            <div class="section">
+                <h2>1. Overview</h2>
+                <p>MakeBuildLabs ("Company") values the privacy of its users and complies with applicable privacy laws and regulations. This Privacy Policy applies to all mobile applications ("Services") provided by the Company.</p>
+            </div>
+
+            <div class="section">
+                <h2>2. Personal Information We Collect</h2>
+                <div class="highlight-box">
+                    We do not collect any personal information from our users.
+                </div>
+                <p style="margin-top:12px;">Our apps operate independently on your device. There is no account registration or login required, and no personal data is transmitted to or stored on any external server.</p>
+            </div>
+
+            <div class="section">
+                <h2>3. Automatically Collected Information</h2>
+                <p>We do not use any third-party services such as advertising SDKs or analytics tools, and we do not automatically collect device information or usage statistics.</p>
+                <p>However, the platforms through which our apps are distributed (Apple App Store, Google Play Store) may independently collect certain data (e.g., installation statistics, crash reports) in accordance with their own privacy policies.</p>
+            </div>
+
+            <div class="section">
+                <h2>4. Device Permissions</h2>
+                <p>Some apps may request device permissions such as camera access to provide their intended functionality. These permissions are used solely within the app, and any captured images or data are processed locally on your device and are never transmitted externally.</p>
+            </div>
+
+            <div class="section">
+                <h2>5. Sharing with Third Parties</h2>
+                <p>We do not share any personal information with third parties.</p>
+            </div>
+
+            <div class="section">
+                <h2>6. Data Retention and Deletion</h2>
+                <p>Since we do not collect personal information, there are no data retention or deletion procedures. Any data generated within the app is stored only on your device and is removed when the app is uninstalled.</p>
+            </div>
+
+            <div class="section">
+                <h2>7. Your Rights</h2>
+                <p>You may delete the app at any time to remove all locally stored data. If you have any questions regarding privacy, please contact us using the information below.</p>
+            </div>
+
+            <div class="section">
+                <h2>8. Contact Information</h2>
+                <div class="contact-placeholder">
+                    Please replace this section with your actual contact details.<br>
+                    Example: Name: John Doe / Email: contact@makebuildlabs.com
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>9. Changes to This Policy</h2>
+                <p>If this Privacy Policy is updated, the changes will be posted on this page and will take effect from the date of posting.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 MakeBuildLabs. All rights reserved.</p>
+        </div>
+
+    </div>
+
+    <script>
+        function setLang(lang) {
+            const btns = document.querySelectorAll('.lang-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+
+            if (lang === 'en') {
+                document.body.classList.add('en');
+                btns[1].classList.add('active');
+                document.documentElement.lang = 'en';
+            } else {
+                document.body.classList.remove('en');
+                btns[0].classList.add('active');
+                document.documentElement.lang = 'ko';
+            }
+        }
+
+        // Auto-detect language from browser
+        if (navigator.language && !navigator.language.startsWith('ko')) {
+            setLang('en');
+        }
+    </script>
+</body>
+</html>
