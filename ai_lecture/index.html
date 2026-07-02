@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TheOtherLooAI — AI 환각 탐지 강의</title>
+<meta name="description" content="AI가 거짓말하는 3가지 방법 — 대상별 맞춤 AI 리터러시 강의">
+<meta property="og:title" content="TheOtherLooAI — AI 환각 탐지 강의">
+<meta property="og:description" content="AI가 거짓말하는 3가지 방법 — 유아부터 대학원생까지 맞춤 강의">
+<meta property="og:type" content="website">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0D0F14; font-family:-apple-system,BlinkMacSystemFont,'Malgun Gothic','Apple SD Gothic Neo',sans-serif; }
+  #root { min-height:100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const DATA = {
+  유아: {
+    label:"유아", icon:"🧸",
+    patterns:[
+      {
+        num:"01",icon:"🔢",name:"숫자가 달라요",sub:"로봇이 숫자를 잘못 말해요",
+        signals:["숫자가 나와요","몇 개인지 말해요","날짜가 나와요","크다 작다 말해요"],
+        checks:["어른한테 물어봐요","책에서 찾아봐요","선생님께 확인해요","여러 번 세어봐요"],
+        caseAI:"로봇이 '코끼리는 귀가 10개야' 라고 했어요",
+        caseFact:"코끼리 귀는 2개예요! 로봇이 틀렸어요 🐘",src:"",
+        demo:{title:"선생님이 찾아볼게요!",steps:[
+          {a:"코끼리 귀 개수 검색하기",d:"어린이 백과사전에서 찾아봐요",link:""},
+          {a:"그림으로 확인해요",d:"코끼리 사진을 보면 바로 알 수 있어요!",link:""},
+        ]}
+      },
+      {
+        num:"02",icon:"🏛️",name:"로봇이 거짓말해요",sub:"없는 이야기를 있는 것처럼 말해요",
+        signals:["유명한 이름이 나와요","책에서 읽었대요","전문가가 말했대요","연구소 이름이 나와요"],
+        checks:["어른한테 물어봐요","도서관에 가봐요","그 책이 진짜 있나요","선생님께 여쭤봐요"],
+        caseAI:"'뽀로로 박사님이 하늘을 나는 방법을 발견했대요'",
+        caseFact:"뽀로로 박사님은 만화 캐릭터예요. 하늘 나는 법을 발견하지 않았어요! ✈️",src:"",
+        demo:{title:"선생님이 찾아볼게요!",steps:[
+          {a:"'뽀로로 박사' 검색해봐요",d:"공식 사이트에 그런 내용이 있나요?",link:""},
+          {a:"없으면 로봇이 틀린 것!",d:"유명한 이름이라도 확인이 필요해요",link:""},
+        ]}
+      },
+      {
+        num:"05",icon:"🌐",name:"전부 다 그래요?",sub:"일부만 그런데 전부 다 그렇다고 말해요",
+        signals:["항상이라고 해요","모두 다 그렇대요","전부라고 해요","하나도 없대요"],
+        checks:["예외가 있는지 물어봐요","'항상은 아니지?' 생각해요","다른 예시 찾아봐요","어른한테 물어봐요"],
+        caseAI:"'강아지는 항상 고양이를 싫어해요'",
+        caseFact:"강아지랑 고양이가 친한 경우도 많아요! '항상'은 틀린 말이에요 🐶🐱",src:"",
+        demo:{title:"같이 생각해봐요!",steps:[
+          {a:"강아지-고양이 친구 사례 생각하기",d:"'항상' 그렇지 않은 경우를 찾아봐요",link:""},
+          {a:"'항상은 아니야'라고 말해봐요!",d:"예외가 있으면 '항상'은 맞지 않아요",link:""},
+        ]}
+      },
+    ]
+  },
+  초등저: {
+    label:"초등 저학년",icon:"🎒",
+    patterns:[
+      {
+        num:"01",icon:"🔢",name:"숫자가 틀렸어요",sub:"컴퓨터가 숫자를 틀리게 말할 수 있어요",
+        signals:["숫자나 날짜가 나와요","~명, ~개 처럼 세는 말","비교하는 말 (더 크다)","%나 배수가 나와요"],
+        checks:["부모님·선생님께 물어봐요","교과서에서 찾아봐요","다른 곳에서도 확인","'정말이야?' 다시 질문"],
+        caseAI:"'우리나라 어린이는 딱 100명이래' — 진짜일까요?",
+        caseFact:"우리나라 어린이는 수백만 명이에요. 컴퓨터가 숫자를 잘못 말했어요!",src:"",
+        demo:{title:"같이 찾아봐요!",steps:[
+          {a:"'우리나라 어린이 수' 검색",d:"통계를 찾아봐요",link:"https://www.index.go.kr"},
+          {a:"숫자 비교하기",d:"AI 말한 숫자 vs 실제 숫자가 다른가요?",link:""},
+        ]}
+      },
+      {
+        num:"02",icon:"🏛️",name:"없는 말을 만들어요",sub:"컴퓨터가 없는 책 이름을 지어내요",
+        signals:["책에서 나왔대요","유명한 사람이 말했대요","뉴스에 나왔다고 해요","학자 이름이 나와요"],
+        checks:["그 책 찾아달라 해요","도서관 앱에서 검색","선생님께 물어봐요","'진짜 있는 책?' 질문"],
+        caseAI:"'어린이 과학책에 따르면 사람은 잠을 안 자도 돼요'",
+        caseFact:"사람은 반드시 잠을 자야 해요. 컴퓨터가 없는 책을 만들어낸 거예요.",src:"",
+        demo:{title:"같이 찾아봐요!",steps:[
+          {a:"도서관 앱에서 책 검색",d:"AI가 말한 책 제목을 검색해봐요",link:"https://www.nl.go.kr"},
+          {a:"없으면 가짜 출처!",d:"진짜 책은 도서관에 꼭 있어요",link:""},
+        ]}
+      },
+      {
+        num:"05",icon:"🌐",name:"항상 그런 건 아니에요",sub:"하나가 그렇다고 다 그런 건 아니에요",
+        signals:["항상, 언제나라고 해요","모든 어린이라고 해요","전부 다, 하나도 없어","예외가 없대요"],
+        checks:["반대 예시 생각하기","'정말 다 그래요?' 질문","교과서에서 찾기","선생님께 확인"],
+        caseAI:"'채소를 먹으면 항상 건강해져요'",
+        caseFact:"채소를 먹어도 다른 이유로 아플 수 있어요. '항상'은 조심해야 해요!",src:"",
+        demo:{title:"반례 찾기!",steps:[
+          {a:"채소 먹고도 아픈 경우 생각하기",d:"'항상 건강해진다'가 맞을까요?",link:""},
+          {a:"교과서에서 '영양소' 찾기",d:"채소만으로 건강이 다 해결되지 않아요",link:""},
+        ]}
+      },
+    ]
+  },
+  초등고: {
+    label:"초등 고학년",icon:"📚",
+    patterns:[
+      {
+        num:"01",icon:"🔢",name:"수치가 바뀌었어요",sub:"AI가 숫자나 날짜를 바꿔서 말해요",
+        signals:["구체적인 숫자·%","~년 기준, ~월 기준","순위나 비교 수치","소수점 포함 통계"],
+        checks:["교과서·백과사전 확인","선생님·부모님께 물어봐요","국가통계 포털 검색","뉴스에서 확인"],
+        caseAI:"'아인슈타인의 뇌는 보통 사람보다 17% 더 무거웠다'",
+        caseFact:"실제로는 뇌 무게는 평균과 같아요. 두정엽 영역이 15% 더 넓었던 거예요.",
+        src:"Witelson et al., The Lancet, 1999",
+        demo:{title:"직접 검색 실습",steps:[
+          {a:"'아인슈타인 뇌' 검색",d:"어린이 백과 또는 구글 검색",link:"https://www.google.com/search?q=아인슈타인+뇌+무게+연구"},
+          {a:"믿을 수 있는 사이트 고르기",d:".go.kr, .edu 국립기관 사이트 선택",link:""},
+          {a:"숫자 비교하기",d:"검색 결과의 숫자 vs AI가 말한 숫자",link:""},
+        ]}
+      },
+      {
+        num:"02",icon:"🏛️",name:"출처를 꾸며내요",sub:"AI가 없는 연구나 기관을 만들어요",
+        signals:["기관 이름이 들어가요","'~연구에서 밝혀진'","저자 이름 + 책 이름","구체적인 연도 언급"],
+        checks:["국립중앙도서관 검색","선생님·사서에게 확인","뉴스에서 같은 연구 찾기","기관 공식 사이트"],
+        caseAI:"'2023년 국제과학기구 보고서에서 커피가 건강에 완전히 해롭다고 발표했어요'",
+        caseFact:"해당 기구는 커피를 발암물질 목록에서 오히려 제외했어요 — 정반대예요!",
+        src:"IARC Monographs Vol.116, 2016",
+        demo:{title:"직접 검색 실습",steps:[
+          {a:"'커피 발암물질 국제기구' 검색",d:"구글·네이버에서 검색",link:"https://www.google.com/search?q=커피+발암물질+국제기구+분류"},
+          {a:"공식 사이트 찾기",d:".org, .int 국제기관 주소 선택",link:"https://www.iarc.who.int"},
+          {a:"AI 말과 실제 내용 비교",d:"'발암물질 분류됨' vs 실제 발표 비교",link:""},
+        ]}
+      },
+      {
+        num:"05",icon:"🌐",name:"과잉일반화",sub:"부분 사실을 전체인 것처럼 표현해요",
+        signals:["항상·모든·전부 단어","100%라는 표현","예외 없다는 말","절대·반드시 같은 단어"],
+        checks:["반례 찾아보기","'모든'이 정말 맞나? 질문","예외 사례 검색","다른 의견 찾기"],
+        caseAI:"'전기차는 완전한 친환경 자동차예요'",
+        caseFact:"배터리 만들 때, 버릴 때 탄소가 많이 나와요. '완전한'은 과장이에요.",
+        src:"IEA Global EV Outlook, 2023",
+        demo:{title:"직접 검색 실습",steps:[
+          {a:"'전기차 단점 환경' 검색",d:"구글에서 검색해봐요",link:"https://www.google.com/search?q=전기차+단점+환경+배터리"},
+          {a:"'배터리 생산 탄소' 기사",d:"뉴스 탭에서 환경 관련 기사 읽기",link:""},
+          {a:"'완전한 친환경'이 맞나요?",d:"기사 내용과 AI 말을 비교해봐요",link:""},
+        ]}
+      },
+    ]
+  },
+  중고생: {
+    label:"중·고등학생",icon:"🎧",
+    patterns:[
+      {
+        num:"01",icon:"🔢",name:"수치·통계 왜곡",sub:"통계·수치를 실제와 다르게 표현",
+        signals:["구체적 수치·% 등장","'약 ~명', '~년 기준'","소수점 포함 통계","순위·비교 단정 표현"],
+        checks:["KOSIS 직접 조회","원출처 보고서 확인","교과서·공식 자료 대조","여러 기관 비교"],
+        caseAI:"'아인슈타인의 뇌는 일반인보다 17% 더 무거웠다'",
+        caseFact:"실제: 뇌 무게는 평균과 동일. 두정엽 특정 영역이 15% 더 넓음 (Witelson, 1999)",
+        src:"Witelson et al., The Lancet, 1999",
+        demo:{title:"직접 검색 실습",steps:[
+          {a:"Google Scholar 검색",d:"'Witelson 1999 Einstein brain' 검색",link:"https://scholar.google.com/scholar?q=witelson+1999+einstein+brain"},
+          {a:"Abstract 읽기",d:"'weight'와 'parietal lobe' 키워드 확인",link:""},
+          {a:"AI 출력과 비교",d:"17% vs 실제 논문 내용 대조",link:""},
+          {a:"결론 정리",d:"무게 차이 없음, 두정엽 구조만 다름",link:""},
+        ]}
+      },
+      {
+        num:"02",icon:"🏛️",name:"출처·인용 날조",sub:"실존하지 않는 논문·기관을 생성",
+        signals:["국제기관 이름 등장","'~연구에서 증명됨'","저자명+저널명 조합","구체 연도 포함 논문"],
+        checks:["Google Scholar 검색","기관 공식 사이트 확인","PubMed·RISS 조회","제목+저자 교차검색"],
+        caseAI:"'국제 보건기구가 커피를 확정 발암물질로 분류했습니다'",
+        caseFact:"해당 기구는 커피를 발암물질 목록에서 제외했음 — 정반대 결론입니다.",
+        src:"IARC Monographs Vol.116, 2016",
+        demo:{title:"직접 검색 실습",steps:[
+          {a:"Scholar 검색",d:"'IARC coffee classification 2016'",link:"https://scholar.google.com/scholar?q=IARC+coffee+classification+2016"},
+          {a:"IARC 모노그래프 확인",d:"Volume 116 원문",link:"https://www.iarc.who.int/featured-news/iarc-monographs-volume-116-coffee/"},
+          {a:"결론 키워드 확인",d:"'Group 3' = 분류 불가 (발암물질 아님)",link:""},
+          {a:"AI 말한 'Group 1'과 비교",d:"Group 1 ≠ Group 3",link:""},
+        ]}
+      },
+      {
+        num:"05",icon:"🌐",name:"과잉일반화",sub:"부분 사실을 전체·항상·모든에 적용",
+        signals:["'완전히'·'모든'·'항상'","'절대'·'100%'","예외 없는 단정 표현","'~하면 무조건' 구조"],
+        checks:["'반례가 있지 않을까?' 질문","생애주기 전체 분석 검색","조건·맥락 제한 확인","국제기구 다자 연구 비교"],
+        caseAI:"'전기차는 완전한 친환경 자동차입니다'",
+        caseFact:"배터리 생산·폐기 과정 탄소 발생 존재. 생애주기 전체 고려 필요.",
+        src:"IEA Global EV Outlook, 2023",
+        demo:{title:"직접 검색 실습",steps:[
+          {a:"'전기차 LCA 탄소' 검색",d:"구글에서 검색",link:"https://www.google.com/search?q=전기차+생애주기+탄소+분석"},
+          {a:"ICCT 보고서 찾기",d:"국제 에너지 기구 공식 자료",link:"https://theicct.org"},
+          {a:"배터리 생산 탄소 확인",d:"광물 채굴·제련 과정 탄소 데이터",link:""},
+          {a:"'완전한 친환경' 재평가",d:"LCA 기준 전기차 vs 내연기관차 비교",link:""},
+        ]}
+      },
+    ]
+  },
+  대학원: {
+    label:"대학·대학원생",icon:"🎓",
+    patterns:[
+      {
+        num:"01",icon:"🔢",name:"수치·통계 왜곡",sub:"숫자, 비율, 날짜를 실제와 다르게 변형",
+        signals:["구체적 수치·% 등장","'약 ~명', '~년 기준'","소수점 포함 통계","순위·비교 단정 표현"],
+        checks:["통계청·기관 직접 조회","원출처 보고서 확인","공식 자료 대조","맥락 재확인"],
+        caseAI:"'아인슈타인의 뇌는 일반인보다 17% 더 무거웠다'",
+        caseFact:"뇌 무게는 평균과 동일. 두정엽 특정 영역이 15% 더 넓음 — 무게가 아닌 구조의 차이 (Witelson et al., The Lancet, 1999)",
+        src:"Source: Witelson et al., The Lancet, 1999",
+        demo:{title:"검증 프로세스 시연",steps:[
+          {a:"PubMed 검색",d:"'Witelson 1999 Einstein brain weight parietal'",link:"https://pubmed.ncbi.nlm.nih.gov/?term=witelson+einstein+brain"},
+          {a:"원문 DOI 확인",d:"The Lancet (1999) Vol.353 — 페이지까지 확인",link:""},
+          {a:"Method 섹션 확인",d:"Brain weight vs parietal lobe width 측정 구분",link:""},
+          {a:"인용 논문 검토",d:"후속 연구가 같은 결론인지 검토",link:""},
+        ]}
+      },
+      {
+        num:"02",icon:"🏛️",name:"출처·인용 날조",sub:"실존하지 않는 논문·기관·데이터 생성",
+        signals:["저명 기관·학술지 언급","'~연구에서 증명됨'","저자+저널+연도 조합","DOI처럼 보이는 번호"],
+        checks:["Scholar 검색","DOI 직접 확인","기관 공식 원문","PubMed/Semantic Scholar"],
+        caseAI:"'국제 보건기구가 2019년 커피를 Group 1 확정 발암물질로 분류했습니다'",
+        caseFact:"실제: 2016년 커피를 Group 3(분류 불가)으로 하향 조정 — 완전히 반대 결론",
+        src:"Source: IARC Monographs Vol.116, 2016",
+        demo:{title:"검증 프로세스 시연",steps:[
+          {a:"IARC 공식 사이트 접속",d:"Volume 116 원문 확인",link:"https://www.iarc.who.int/featured-news/iarc-monographs-volume-116-coffee/"},
+          {a:"PubMed 교차 확인",d:"'Loomis 2016 coffee IARC'",link:"https://pubmed.ncbi.nlm.nih.gov/?term=coffee+IARC+2016"},
+          {a:"IARC 분류 체계 이해",d:"Group 1/2A/2B/3/4 각 의미 파악",link:""},
+          {a:"오류 유형 분류",d:"날조(Fabrication) + 사실반전(Contradiction) 복합",link:""},
+        ]}
+      },
+      {
+        num:"05",icon:"🌐",name:"과잉일반화",sub:"부분 사실을 전체·항상·모든에 적용",
+        signals:["'완전히'·'모든'·'항상'","조건 없는 단정 표현","예외·반례 언급 전무","학술 근거 없는 절대화"],
+        checks:["반례 질문","LCA 원문 검색","조건·맥락 제한 확인","메타분석·문헌고찰 참조"],
+        caseAI:"'전기차는 생산부터 폐기까지 완전한 친환경 이동수단입니다'",
+        caseFact:"배터리 생산(광물 채굴·제련) 및 폐기 단계에서 탄소 집약. 생애주기(LCA) 분석 필요. (ICCT, 2021)",
+        src:"Source: ICCT LCA Report, 2021 / IEA Global EV Outlook, 2023",
+        demo:{title:"검증 프로세스 시연",steps:[
+          {a:"ICCT LCA Report 2021",d:"'Life-cycle GHG emissions EV' 검색",link:"https://theicct.org"},
+          {a:"IEA EV Outlook 데이터",d:"배터리 생산 GHG 배출량 표 확인",link:"https://www.iea.org/reports/global-ev-outlook-2023"},
+          {a:"메타분석 검색",d:"'EV LCA meta-analysis'",link:"https://scholar.google.com/scholar?q=EV+life+cycle+analysis"},
+          {a:"'완전한 친환경' 반증",d:"전력믹스·광물 채굴 변수 도출",link:""},
+        ]}
+      },
+    ]
+  },
+  일반인: {
+    label:"일반인",icon:"💼",
+    patterns:[
+      {
+        num:"01",icon:"🔢",name:"수치·통계 왜곡",sub:"숫자, 비율, 날짜를 실제와 다르게 변형",
+        signals:["구체적 숫자·% 등장","'약 ~명', '~년 기준'","소수점 포함 통계","순위·비교 수치 단정"],
+        checks:["통계청·기관 직접 조회","원출처 보고서 확인","달력·공식앱으로 대조","숫자 앞뒤 맥락 재확인"],
+        caseAI:"'아인슈타인의 뇌는 일반인보다 17% 더 무거웠다'",
+        caseFact:"뇌 무게는 평균과 동일. 두정엽 특정 영역이 15% 더 넓음 — 무게가 아닌 구조의 차이",
+        src:"Source: Witelson et al., The Lancet, 1999",
+        demo:{title:"직접 검색해봅시다",steps:[
+          {a:"'아인슈타인 뇌 연구' 검색",d:"구글·네이버에서 검색해보세요",link:"https://www.google.com/search?q=아인슈타인+뇌+연구+무게"},
+          {a:"신뢰할 기사 고르기",d:"대학·연구소·신문사 기사 우선 선택",link:""},
+          {a:"AI 말한 내용과 비교",d:"'17% 더 무겁다' vs 실제 기사 내용",link:""},
+          {a:"결론 확인",d:"무게는 같고, 구조가 달랐다는 것 확인",link:""},
+        ]}
+      },
+      {
+        num:"02",icon:"🏛️",name:"출처·인용 날조",sub:"실존하지 않는 논문·기관을 그럴듯하게 생성",
+        signals:["'국제기구에 따르면'","학술지명·저자명 조합","구체 연도 포함 인용","'~연구에서 증명됨'"],
+        checks:["학술 검색엔진 검색","기관 공식 원문","의학 DB 직접 조회","논문 고유번호 실존 확인"],
+        caseAI:"'국제 보건기구가 커피를 확정 발암물질로 분류했습니다'",
+        caseFact:"해당 기구는 커피를 발암물질 목록에서 제외했음 — 정반대 결론입니다.",
+        src:"Source: IARC Monographs Vol.116, 2016",
+        demo:{title:"직접 검색해봅시다",steps:[
+          {a:"'커피 발암물질' 검색",d:"구글·네이버 뉴스 탭 클릭",link:"https://www.google.com/search?q=커피+발암물질+WHO+분류"},
+          {a:"신뢰할 기사 선택",d:"방송사·의학 전문 매체 우선",link:""},
+          {a:"기관 공식 사이트 방문",d:"IARC(국제암연구소) 직접 확인",link:"https://www.iarc.who.int"},
+          {a:"결론 비교",d:"AI: 발암물질 ↔ 실제: 분류 제외",link:""},
+        ]}
+      },
+      {
+        num:"05",icon:"🌐",name:"과잉일반화",sub:"부분 사실을 전체·항상·모든에 적용",
+        signals:["'완전히'·'모든'·'항상'","'절대'·'100%'","예외 없는 단정 표현","'~하면 무조건' 구조"],
+        checks:["'반례가 있지 않을까?' 질문","생애주기 전체 분석 검색","조건·맥락 제한 확인","국제기구 다자 연구 비교"],
+        caseAI:"'전기차는 완전한 친환경 자동차입니다'",
+        caseFact:"배터리 생산·폐기 과정 탄소 발생 존재. 생애주기 전체 고려 필요.",
+        src:"Source: IEA Global EV Outlook, 2023 / ICCT LCA, 2021",
+        demo:{title:"직접 검색해봅시다",steps:[
+          {a:"'전기차 환경 단점' 검색",d:"구글·네이버에서 검색",link:"https://www.google.com/search?q=전기차+환경+단점+배터리"},
+          {a:"뉴스 기사 2-3개 읽기",d:"배터리 생산·폐기 환경 문제 기사",link:""},
+          {a:"'완전한 친환경'인지 확인",d:"기사 내용과 AI 말 비교하기",link:""},
+          {a:"결론 내리기",d:"'상대적으로 친환경' — 완전은 아님",link:""},
+        ]}
+      },
+    ]
+  },
+};
+
+const AUD_KEYS = ["유아","초등저","초등고","중고생","대학원","일반인"];
+const STEP_LABELS = ["신호어","검증방법","AI 사례","실제 정답","검색 실습"];
+
+function App() {
+  const [audKey, setAudKey] = useState(null);
+  const [patIdx, setPatIdx] = useState(0);
+  const [step, setStep] = useState(0);
+
+  if (!audKey) {
+    return (
+      <div style={{minHeight:"100vh",background:"#0D0F14",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 20px",gap:"20px"}}>
+        <div style={{fontSize:"clamp(20px,5vw,30px)",fontWeight:"900",color:"#E8EAF0",textAlign:"center",lineHeight:1.35}}>
+          오늘 배울 것:<br/><span style={{color:"#5B8CFF"}}>AI가 거짓말하는 3가지 방법</span>
+        </div>
+        <div style={{fontSize:"14px",color:"#8A90A0",textAlign:"center"}}>대상을 선택하면 맞춤 강의가 시작됩니다</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",maxWidth:"680px",width:"100%"}}>
+          {AUD_KEYS.map(k => (
+            <button key={k} onClick={() => { setAudKey(k); setPatIdx(0); setStep(0); }}
+              style={{border:"2px solid #2A3050",borderRadius:"12px",padding:"18px 10px",textAlign:"center",cursor:"pointer",background:"#181B24",color:"#E8EAF0",fontSize:"14px",fontFamily:"inherit"}}>
+              <div style={{fontSize:"28px",marginBottom:"8px"}}>{DATA[k].icon}</div>
+              <div style={{fontWeight:"700"}}>{DATA[k].label}</div>
+            </button>
+          ))}
+        </div>
+        <div style={{fontSize:"11px",color:"#2A3050",marginTop:"8px"}}>TheOtherLooAI · MakeBuildLabs</div>
+      </div>
+    );
+  }
+
+  const aud = DATA[audKey];
+  const pat = aud.patterns[patIdx];
+  const maxStep = 4;
+  const totalPats = aud.patterns.length;
+
+  const goNext = () => {
+    if (step < maxStep) setStep(s => s+1);
+    else if (patIdx < totalPats-1) { setPatIdx(p => p+1); setStep(0); }
+  };
+  const goPrev = () => {
+    if (step > 0) setStep(s => s-1);
+    else if (patIdx > 0) { setPatIdx(p => p-1); setStep(maxStep); }
+  };
+  const isFirst = patIdx===0 && step===0;
+  const isLast  = patIdx===totalPats-1 && step===maxStep;
+
+  const patColor = {"01":"#3B82F6","02":"#8B5CF6","05":"#F59E0B"}[pat.num] || "#5B8CFF";
+
+  return (
+    <div style={{minHeight:"100vh",background:"#0D0F14",color:"#E8EAF0",fontFamily:"inherit",paddingBottom:"72px"}}>
+
+      {/* 상단 바 */}
+      <div style={{background:"#13161E",borderBottom:"1px solid #1E2230",padding:"12px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10}}>
+        <div style={{fontSize:"13px",color:"#8A90A0"}}>
+          <span style={{fontWeight:"700",color:"#E8EAF0"}}>{aud.label}</span>
+          {" · 패턴 "}{patIdx+1}/{totalPats}
+        </div>
+        <button onClick={() => setAudKey(null)}
+          style={{background:"#2A3050",border:"none",color:"#E8EAF0",padding:"6px 14px",borderRadius:"8px",cursor:"pointer",fontSize:"13px",fontFamily:"inherit"}}>
+          대상 변경
+        </button>
+      </div>
+
+      {/* 진행 바 */}
+      <div style={{height:"3px",background:"#1E2230"}}>
+        <div style={{height:"100%",background:patColor,width:`${((patIdx*5+step+1)/(totalPats*5))*100}%`,transition:"width .3s"}}/>
+      </div>
+
+      <div style={{maxWidth:"800px",margin:"0 auto",padding:"24px 16px"}}>
+
+        {/* 패턴 헤더 */}
+        <div style={{display:"flex",alignItems:"center",gap:"14px",marginBottom:"20px",padding:"20px",background:"#181B24",borderRadius:"14px",borderLeft:`4px solid ${patColor}`}}>
+          <span style={{fontSize:"36px"}}>{pat.icon}</span>
+          <div style={{flex:1}}>
+            <div style={{fontSize:"clamp(18px,4vw,24px)",fontWeight:"900"}}>{pat.name}</div>
+            <div style={{fontSize:"13px",color:"#8A90A0",marginTop:"3px"}}>{pat.sub}</div>
+          </div>
+          <div style={{fontSize:"11px",background:patColor,padding:"4px 10px",borderRadius:"20px",color:"#fff",whiteSpace:"nowrap",fontWeight:"700"}}>
+            {pat.num}
+          </div>
+        </div>
+
+        {/* 신호어 (step 0+) */}
+        {step >= 0 && (
+          <div style={{marginBottom:"16px",background:"#181B24",borderRadius:"12px",padding:"20px",border:"1px solid #1E2230"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"14px",paddingBottom:"12px",borderBottom:"1px solid #1E2230"}}>
+              <span>⚡</span>
+              <span style={{fontSize:"12px",fontWeight:"700",color:"#F59E0B",letterSpacing:"0.06em"}}>이런 표현이 나오면 의심하세요</span>
+            </div>
+            {pat.signals.map((s,i) => (
+              <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"8px 0",borderBottom:i<pat.signals.length-1?"1px solid #13161E":"none"}}>
+                <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#F59E0B",flexShrink:0}}/>
+                <span style={{fontSize:"clamp(14px,3.5vw,17px)",color:"#E8EAF0"}}>{s}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 검증방법 (step 1+) */}
+        {step >= 1 && (
+          <div style={{marginBottom:"16px",background:"#181B24",borderRadius:"12px",padding:"20px",border:"1px solid #1E2230"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"14px",paddingBottom:"12px",borderBottom:"1px solid #1E2230"}}>
+              <span>✓</span>
+              <span style={{fontSize:"12px",fontWeight:"700",color:"#34D399",letterSpacing:"0.06em"}}>이렇게 확인하세요</span>
+            </div>
+            {pat.checks.map((c,i) => (
+              <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"8px 0",borderBottom:i<pat.checks.length-1?"1px solid #13161E":"none"}}>
+                <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#34D399",flexShrink:0}}/>
+                <span style={{fontSize:"clamp(14px,3.5vw,17px)",color:"#E8EAF0"}}>{c}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* AI 사례 (step 2+) */}
+        {step >= 2 && (
+          <div style={{marginBottom:"12px",background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"12px",padding:"18px 20px"}}>
+            <div style={{fontSize:"11px",fontWeight:"700",color:"#F87171",marginBottom:"8px",letterSpacing:"0.06em"}}>🤖 AI 출력 (환각)</div>
+            <div style={{fontSize:"clamp(15px,3.5vw,18px)",lineHeight:"1.7",color:"#E8EAF0"}}>{pat.caseAI}</div>
+          </div>
+        )}
+
+        {/* 실제 정답 (step 3+) */}
+        {step >= 3 && (
+          <div style={{marginBottom:"16px",background:"rgba(52,211,153,0.07)",border:"1px solid rgba(52,211,153,0.28)",borderRadius:"12px",padding:"18px 20px"}}>
+            <div style={{fontSize:"11px",fontWeight:"700",color:"#34D399",marginBottom:"8px",letterSpacing:"0.06em"}}>✓ 실제 사실</div>
+            <div style={{fontSize:"clamp(15px,3.5vw,18px)",lineHeight:"1.7",color:"#E8EAF0"}}>{pat.caseFact}</div>
+            {pat.src && <div style={{fontSize:"11px",color:"#4A5270",marginTop:"8px"}}>{pat.src}</div>}
+          </div>
+        )}
+
+        {/* 검색 실습 (step 4) */}
+        {step >= 4 && (
+          <div style={{background:"#181B24",border:"1px solid #1E2230",borderRadius:"12px",padding:"20px"}}>
+            <div style={{fontSize:"13px",fontWeight:"700",color:"#5B8CFF",marginBottom:"16px"}}>🔍 {pat.demo.title}</div>
+            {pat.demo.steps.map((s,i) => (
+              <div key={i} style={{display:"flex",gap:"12px",marginBottom:"16px"}}>
+                <div style={{width:"28px",height:"28px",borderRadius:"50%",background:"#2A3050",color:"#5B8CFF",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"700",fontSize:"12px",flexShrink:0,marginTop:"2px"}}>{i+1}</div>
+                <div>
+                  <div style={{fontSize:"clamp(14px,3.5vw,16px)",fontWeight:"700",marginBottom:"3px"}}>{s.a}</div>
+                  <div style={{fontSize:"13px",color:"#8A90A0",lineHeight:"1.5"}}>{s.d}</div>
+                  {s.link && (
+                    <a href={s.link} target="_blank" rel="noopener noreferrer"
+                      style={{display:"inline-block",marginTop:"6px",fontSize:"12px",padding:"5px 12px",borderRadius:"6px",border:"1px solid #5B8CFF",color:"#5B8CFF",textDecoration:"none"}}>
+                      검색 열기 ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 하단 컨트롤 */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#0A0C10",borderTop:"1px solid #1E2230",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{fontSize:"12px",color:"#8A90A0"}}>{STEP_LABELS[step]}</div>
+        <div style={{display:"flex",gap:"8px"}}>
+          <button onClick={goPrev} disabled={isFirst}
+            style={{background:"#1E2230",border:"none",color:isFirst?"#3A4060":"#E8EAF0",padding:"9px 18px",borderRadius:"8px",cursor:isFirst?"default":"pointer",fontSize:"14px",fontFamily:"inherit"}}>
+            ◀ 이전
+          </button>
+          <button onClick={goNext} disabled={isLast}
+            style={{background:isLast?"#1E2230":patColor,border:"none",color:isLast?"#3A4060":"#fff",padding:"9px 18px",borderRadius:"8px",cursor:isLast?"default":"pointer",fontSize:"14px",fontWeight:"700",fontFamily:"inherit"}}>
+            다음 ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
